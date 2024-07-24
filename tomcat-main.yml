@@ -1,0 +1,46 @@
+---
+- name: Install Java and Tomcat
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install Java 11
+      apt:
+        name: openjdk-11-jdk
+        state: present
+
+    - name: Set JAVA_HOME in .bash_profile
+      lineinfile:
+        path: /root/.bash_profile
+        line: 'export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64'
+        create: yes
+
+    - name: Add JAVA_HOME to PATH in .bash_profile
+      lineinfile:
+        path: /root/.bash_profile
+        line: 'export PATH=$JAVA_HOME/bin:$PATH'
+        create: yes
+
+    - name: Source .bash_profile
+      shell: source /root/.bash_profile
+      args:
+        executable: /bin/bash
+
+    - name: Download Tomcat
+      get_url:
+        url: https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.65/bin/apache-tomcat-9.0.65.tar.gz
+        dest: /tmp/apache-tomcat-9.0.65.tar.gz
+
+    - name: Create installation directory
+      file:
+        path: /opt/tomcat
+        state: directory
+
+    - name: Extract Tomcat archive
+      unarchive:
+        src: /tmp/apache-tomcat-9.0.65.tar.gz
+        dest: /opt/tomcat
+        remote_src: yes
+
+    - name: Start Tomcat
+      shell: /opt/tomcat/apache-tomcat-9.0.65/bin/startup.sh
